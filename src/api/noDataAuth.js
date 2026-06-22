@@ -1,60 +1,90 @@
-const serviceOptions = [
-  {
-    id: "service-ecs",
-    name: "ABC",
-    expireDate: "2027-10-31",
-    approver: "张三",
-    orderNo: "12345678",
-  },
-  {
-    id: "service-obs",
-    name: "DEF",
-    expireDate: "2027-10-31",
-    approver: "张三",
-    orderNo: "12345678",
-  },
-  {
-    id: "service-xpu",
-    name: "GHI",
-    expireDate: "2027-10-31",
-    approver: "张三",
-    orderNo: "12345678",
-  },
-];
-
-const regionGroups = [
-  {
-    id: "north",
-    name: "英超",
-    children: [
-      { id: "region-bj-1", name: "英超-阿森纳", area: "英超" },
-      { id: "region-bj-2", name: "英超-切尔西", area: "英超" },
-      { id: "region-bj-4", name: "英超-利物浦", area: "英超" },
-      { id: "region-ul-1", name: "英超-曼城", area: "英超" },
-      { id: "region-ul-auto-1", name: "英超-曼联", area: "英超" },
-      { id: "region-north-3", name: "英超-热刺", area: "英超" },
-    ],
-  },
-  {
-    id: "east",
-    name: "西甲",
-    children: [
-      { id: "region-sh-1", name: "西甲-皇马", area: "西甲" },
-      { id: "region-sh-2", name: "西甲-巴萨", area: "西甲" },
-      { id: "region-qingdao", name: "西甲-马竞", area: "西甲" },
-      { id: "region-east-2", name: "西甲-塞维利亚", area: "西甲" },
-    ],
-  },
-  {
-    id: "south",
-    name: "德甲",
-    children: [
-      { id: "region-gz-1", name: "德甲-拜仁", area: "德甲" },
-      { id: "region-sz-1", name: "德甲-多特蒙德", area: "德甲" },
-      { id: "region-hk-1", name: "德甲-勒沃库森", area: "德甲" },
-    ],
-  },
-];
+const userAuthMock = {
+  account: "12345678",
+  ruleCodeList: [
+    {
+      name: "张三",
+      code: "ROLE_CXO",
+    },
+    {
+      name: "张三",
+      code: "ROLE_SALES",
+    },
+    {
+      name: "张三",
+      code: "ROLE_CUSTOMER",
+    },
+  ],
+  regionCodeList: [
+    {
+      name: "华东",
+      code: "REGION_CN_EAST",
+      children: [
+        {
+          name: "英超-阿森纳",
+          code: "REGION_CN_EAST",
+        },
+        {
+          name: "英超-切尔西",
+          code: "REGION_CN_EAST_CHELSEA",
+        },
+        {
+          name: "英超-利物浦",
+          code: "REGION_CN_EAST_LIVERPOOL",
+        },
+      ],
+    },
+    {
+      name: "华西",
+      code: "REGION_CN_WEST",
+      children: [
+        {
+          name: "西甲-皇家马德里",
+          code: "REGION_CN_WEST_REAL_MADRID",
+        },
+        {
+          name: "西甲-巴塞罗那",
+          code: "REGION_CN_WEST_BARCELONA",
+        },
+        {
+          name: "西甲-马德里竞技",
+          code: "REGION_CN_WEST_ATLETICO",
+        },
+      ],
+    },
+    {
+      name: "华南",
+      code: "REGION_CN_SOUTH",
+      children: [
+        {
+          name: "意甲-国际米兰",
+          code: "REGION_CN_SOUTH_INTER",
+        },
+        {
+          name: "德甲-拜仁慕尼黑",
+          code: "REGION_CN_SOUTH_BAYERN",
+        },
+        {
+          name: "法甲-巴黎圣日耳曼",
+          code: "REGION_CN_SOUTH_PSG",
+        },
+      ],
+    },
+  ],
+  dataTypeList: [
+    {
+      name: "张三",
+      code: "DATA_COST",
+    },
+    {
+      name: "张三",
+      code: "DATA_EFFICIENCY",
+    },
+    {
+      name: "张三",
+      code: "DATA_REVENUE",
+    },
+  ],
+};
 
 const statusTextMap = {
   waiting: "未拥有",
@@ -64,12 +94,28 @@ const statusTextMap = {
 
 let applications = [
   {
-    id: "app-1001",
-    status: "approving",
-    serviceIds: ["service-ecs", "service-obs"],
-    regionIds: ["region-bj-1", "region-sh-1"],
-    reason: "项目联调需要临时开通数据权限。",
-    createdAt: "2026-06-21 10:00",
+    user: "12345678",
+    order: "ORDER1001",
+    title: "数据权限申请",
+    status: "审批中",
+    approver: "张三",
+    userId: "12345678",
+    tenant: "",
+    description: "项目联调需要临时开通数据权限。",
+    dataRoleList: [
+      {
+        dataRoleId: "ROLE_CXO",
+        validityPeriod: "2027-10-31",
+      },
+      {
+        dataRoleId: "REGION_CN_EAST",
+        validityPeriod: "2027-10-31",
+      },
+      {
+        dataRoleId: "DATA_COST",
+        validityPeriod: "2027-10-31",
+      },
+    ],
   },
 ];
 
@@ -79,7 +125,9 @@ const waitMock = (data) =>
   new Promise((resolve) => {
     window.setTimeout(() => {
       resolve({
-        code: 0,
+        status: 0,
+        message: "",
+        messageEn: "",
         data,
       });
     }, 220);
@@ -87,81 +135,66 @@ const waitMock = (data) =>
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-const getServiceNames = (serviceIds) =>
-  serviceIds
-    .map((serviceId) => serviceOptions.find((service) => service.id === serviceId).name)
-    .join("、");
-
-const getRegionNames = (regionIds) => {
-  const regions = regionGroups.flatMap((group) => group.children);
-
-  return regionIds
-    .map((regionId) => regions.find((region) => region.id === regionId).name)
-    .join("、");
-};
-
-const toRecordView = (record) => ({
-  ...record,
-  statusText: statusTextMap[record.status],
-  serviceNames: getServiceNames(record.serviceIds),
-  regionNames: getRegionNames(record.regionIds),
+const toOrderView = (record) => ({
+  user: record.user,
+  order: record.order,
+  title: record.title,
+  status: record.status,
+  approver: record.approver,
 });
 
 export const getNoDataAuthOptions = () =>
-  waitMock({
-    services: clone(serviceOptions),
-    regions: clone(regionGroups),
-  });
+  waitMock(clone(userAuthMock));
 
 export const getNoDataAuthList = (params) => {
   let list = applications;
 
   if (params.status !== "all") {
-    list = list.filter((record) => record.status === params.status);
+    list = list.filter((record) => record.status === statusTextMap[params.status]);
   }
 
-  return waitMock(clone(list.map(toRecordView)));
+  return waitMock(clone(list.map(toOrderView)));
 };
 
 export const createNoDataAuth = (payload) => {
   const record = {
-    id: `app-${recordSeed}`,
-    status: "approving",
-    serviceIds: payload.serviceIds,
-    regionIds: payload.regionIds,
-    reason: payload.reason,
-    createdAt: payload.createdAt,
+    user: payload.userId,
+    order: `ORDER${recordSeed}`,
+    title: "数据权限申请",
+    status: "审批中",
+    approver: "张三",
+    userId: payload.userId,
+    tenant: payload.tenant,
+    description: payload.description,
+    dataRoleList: payload.dataRoleList,
   };
 
   recordSeed += 1;
   applications = [record, ...applications];
 
-  return waitMock(clone(toRecordView(record)));
+  return waitMock(true);
 };
 
-export const updateNoDataAuth = (id, payload) => {
+export const updateNoDataAuth = (order, payload) => {
   applications = applications.map((record) => {
-    if (record.id !== id) {
+    if (record.order !== order) {
       return record;
     }
 
     return {
       ...record,
-      serviceIds: payload.serviceIds,
-      regionIds: payload.regionIds,
-      reason: payload.reason,
+      userId: payload.userId,
+      tenant: payload.tenant,
+      description: payload.description,
+      dataRoleList: payload.dataRoleList,
     };
   });
 
-  const current = applications.find((record) => record.id === id);
-
-  return waitMock(clone(toRecordView(current)));
+  return waitMock(true);
 };
 
-export const deleteNoDataAuth = (id) => {
-  applications = applications.filter((record) => record.id !== id);
+export const deleteNoDataAuth = (order) => {
+  applications = applications.filter((record) => record.order !== order);
 
-  return waitMock({
-    id,
-  });
+  return waitMock(true);
 };

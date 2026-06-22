@@ -3,7 +3,7 @@
     <section class="no-data-auth__content">
       <header class="page-title">
         <h1>您没有当前页面的数据权限</h1>
-        <el-tooltip content="可选择云服务和 Region 后发起权限申请" placement="right">
+        <el-tooltip content="可选择角色、Region 和数据类型后发起权限申请" placement="right">
           <el-icon class="page-title__icon"><QuestionFilled /></el-icon>
         </el-tooltip>
       </header>
@@ -16,21 +16,21 @@
 
       <section v-if="activeStatus === 'owned'" class="owned-auth">
         <div class="owned-section">
-          <h2 class="owned-section__title">云服务</h2>
+          <h2 class="owned-section__title">角色</h2>
           <div class="owned-list">
             <button
-              v-for="service in services"
-              :key="service.id"
+              v-for="role in roles"
+              :key="role.code"
               class="owned-card"
               type="button"
             >
               <span class="owned-card__name">
                 <span class="owned-card__checkbox" aria-hidden="true" />
                 <el-icon><Grid /></el-icon>
-                {{ service.name }}
+                {{ role.name }}
               </span>
               <span class="owned-card__meta">
-                {{ service.expireDate }}到期 审批人：{{ service.approver }} {{ service.orderNo }}
+                {{ role.code }}
               </span>
             </button>
           </div>
@@ -41,7 +41,7 @@
           <div class="owned-list">
             <button
               v-for="region in ownedRegions"
-              :key="region.id"
+              :key="region.code"
               class="owned-card"
               type="button"
             >
@@ -51,7 +51,28 @@
                 {{ region.name }}
               </span>
               <span class="owned-card__meta">
-                {{ region.expireDate }}到期 审批人：{{ region.approver }} {{ region.orderNo }}
+                {{ region.code }} {{ region.expireDate }}到期 审批人：{{ region.approver }} {{ region.orderNo }}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="owned-section">
+          <h2 class="owned-section__title">数据类型</h2>
+          <div class="owned-list">
+            <button
+              v-for="dataType in dataTypes"
+              :key="dataType.code"
+              class="owned-card"
+              type="button"
+            >
+              <span class="owned-card__name">
+                <span class="owned-card__checkbox" aria-hidden="true" />
+                <el-icon><Grid /></el-icon>
+                {{ dataType.name }}
+              </span>
+              <span class="owned-card__meta">
+                {{ dataType.code }}
               </span>
             </button>
           </div>
@@ -61,11 +82,11 @@
       <section v-else-if="activeStatus === 'approving'" class="approving-table">
         <el-table :data="approvingRows" class="approving-table__inner">
           <el-table-column prop="index" label="序号" min-width="90" sortable />
-          <el-table-column prop="applicant" label="申请人" min-width="160" sortable />
-          <el-table-column prop="ticketNo" label="工单号" min-width="220" sortable />
-          <el-table-column prop="ticketTitle" label="工单标题" min-width="260" sortable />
+          <el-table-column prop="user" label="申请人" min-width="160" sortable />
+          <el-table-column prop="order" label="工单号" min-width="220" sortable />
+          <el-table-column prop="title" label="工单标题" min-width="260" sortable />
           <el-table-column prop="status" label="状态" min-width="160" sortable />
-          <el-table-column prop="handler" label="当前处理人" min-width="220" sortable />
+          <el-table-column prop="approver" label="当前处理人" min-width="220" sortable />
         </el-table>
       </section>
 
@@ -77,29 +98,29 @@
         class="apply-form"
         label-position="top"
       >
-        <el-form-item label="云服务" prop="serviceIds" required>
+        <el-form-item label="角色" prop="roleCodes" required>
           <div class="service-grid">
             <button
-              v-for="service in services"
-              :key="service.id"
+              v-for="role in roles"
+              :key="role.code"
               class="resource-card"
-              :class="{ 'resource-card--active': form.serviceIds.includes(service.id) }"
+              :class="{ 'resource-card--active': form.roleCodes.includes(role.code) }"
               type="button"
-              @click="toggleService(service.id)"
+              @click="toggleRole(role.code)"
             >
               <span class="resource-card__name">
                 <span class="resource-card__checkbox" aria-hidden="true" />
                 <el-icon><Grid /></el-icon>
-                {{ service.name }}
+                {{ role.name }}
               </span>
               <span class="resource-card__meta">
-                {{ service.expireDate }}到期 审批人：{{ service.approver }} {{ service.orderNo }}
+                {{ role.code }}
               </span>
             </button>
           </div>
         </el-form-item>
 
-        <el-form-item label="Region" prop="regionIds" required>
+        <el-form-item label="Region" prop="regionCodes" required>
           <section class="region-panel">
             <div class="region-toolbar">
               <label class="region-toolbar__label">大区</label>
@@ -147,22 +168,43 @@
                 >
                   <button
                     v-for="region in group.children"
-                    :key="region.id"
+                    :key="region.code"
                     class="resource-card resource-card--region"
-                    :class="{ 'resource-card--active': form.regionIds.includes(region.id) }"
+                    :class="{ 'resource-card--active': form.regionCodes.includes(region.code) }"
                     type="button"
-                    @click="toggleRegion(region.id)"
+                    @click="toggleRegion(region.code)"
                   >
                     <span class="resource-card__name">
                       <span class="resource-card__checkbox" aria-hidden="true" />
                       <el-icon><Grid /></el-icon>
                       {{ region.name }}
                     </span>
+                    <span class="resource-card__meta">{{ region.code }}</span>
                   </button>
                 </div>
               </div>
             </el-scrollbar>
           </section>
+        </el-form-item>
+
+        <el-form-item label="数据类型" prop="dataTypeCodes" required>
+          <div class="service-grid">
+            <button
+              v-for="dataType in dataTypes"
+              :key="dataType.code"
+              class="resource-card"
+              :class="{ 'resource-card--active': form.dataTypeCodes.includes(dataType.code) }"
+              type="button"
+              @click="toggleDataType(dataType.code)"
+            >
+              <span class="resource-card__name">
+                <span class="resource-card__checkbox" aria-hidden="true" />
+                <el-icon><Grid /></el-icon>
+                {{ dataType.code }}
+              </span>
+              <span class="resource-card__meta" />
+            </button>
+          </div>
         </el-form-item>
 
         <el-form-item label="申请原因" prop="reason" required>
@@ -192,6 +234,7 @@ import { ElMessage } from "element-plus";
 import { Grid, QuestionFilled, Search } from "@element-plus/icons-vue";
 import {
   createNoDataAuth,
+  getNoDataAuthList,
   getNoDataAuthOptions,
 } from "@/api/noDataAuth";
 
@@ -200,20 +243,23 @@ const areaFilter = ref("all");
 const formRef = ref();
 const keyword = ref("");
 const openedGroups = ref([]);
-const services = ref([]);
+const roles = ref([]);
 const regionGroups = ref([]);
+const dataTypes = ref([]);
 const approvingRows = ref([]);
 const submitLoading = ref(false);
 
 const form = reactive({
-  serviceIds: [],
-  regionIds: [],
+  roleCodes: [],
+  regionCodes: [],
+  dataTypeCodes: [],
   reason: "",
 });
 
 const rules = {
-  serviceIds: [{ required: true, message: "请选择云服务", trigger: "change" }],
-  regionIds: [{ required: true, message: "请选择Region", trigger: "change" }],
+  roleCodes: [{ required: true, message: "请选择角色", trigger: "change" }],
+  regionCodes: [{ required: true, message: "请选择Region", trigger: "change" }],
+  dataTypeCodes: [{ required: true, message: "请选择数据类型", trigger: "change" }],
   reason: [{ required: true, message: "请输入申请原因", trigger: "blur" }],
 };
 
@@ -253,10 +299,28 @@ const visibleRegionGroups = computed(() => {
 
 const loadOptions = async () => {
   const response = await getNoDataAuthOptions();
+  const regionGroupsByCode = response.data.regionCodeList.map((region) => ({
+    id: region.code,
+    name: region.name,
+    children: region.children,
+  }));
 
-  services.value = response.data.services;
-  regionGroups.value = response.data.regions;
-  openedGroups.value = response.data.regions.map((group) => group.id);
+  roles.value = response.data.ruleCodeList;
+  regionGroups.value = regionGroupsByCode;
+  dataTypes.value = response.data.dataTypeList;
+  openedGroups.value = regionGroupsByCode.map((group) => group.id);
+};
+
+const loadApprovingRows = async () => {
+  const response = await getNoDataAuthList({
+    account: "12345678",
+    status: "approving",
+  });
+
+  approvingRows.value = response.data.map((row, index) => ({
+    index: index + 1,
+    ...row,
+  }));
 };
 
 const toggleById = (list, id) => {
@@ -267,14 +331,19 @@ const toggleById = (list, id) => {
   return [...list, id];
 };
 
-const toggleService = (id) => {
-  form.serviceIds = toggleById(form.serviceIds, id);
-  formRef.value.validateField("serviceIds");
+const toggleRole = (code) => {
+  form.roleCodes = toggleById(form.roleCodes, code);
+  formRef.value.validateField("roleCodes");
 };
 
-const toggleRegion = (id) => {
-  form.regionIds = toggleById(form.regionIds, id);
-  formRef.value.validateField("regionIds");
+const toggleRegion = (code) => {
+  form.regionCodes = toggleById(form.regionCodes, code);
+  formRef.value.validateField("regionCodes");
+};
+
+const toggleDataType = (code) => {
+  form.dataTypeCodes = toggleById(form.dataTypeCodes, code);
+  formRef.value.validateField("dataTypeCodes");
 };
 
 const toggleGroup = (id) => {
@@ -290,21 +359,11 @@ const handleKeywordChange = () => {
 };
 
 const resetForm = () => {
-  form.serviceIds = [];
-  form.regionIds = [];
+  form.roleCodes = [];
+  form.regionCodes = [];
+  form.dataTypeCodes = [];
   form.reason = "";
   formRef.value.clearValidate();
-};
-
-const getCreatedAt = () => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day} ${hour}:${minute}`;
 };
 
 const handleSubmit = async () => {
@@ -313,14 +372,22 @@ const handleSubmit = async () => {
 
   try {
     const payload = {
-      serviceIds: [...form.serviceIds],
-      regionIds: [...form.regionIds],
-      reason: form.reason,
-      createdAt: getCreatedAt(),
+      userId: "12345678",
+      tenant: "",
+      description: form.reason,
+      dataRoleList: [
+        ...form.roleCodes,
+        ...form.regionCodes,
+        ...form.dataTypeCodes,
+      ].map((dataRoleId) => ({
+        dataRoleId,
+        validityPeriod: "2027-10-31",
+      })),
     };
 
     await createNoDataAuth(payload);
     ElMessage.success("快捷申请已提交，后续跳转页面待接入");
+    await loadApprovingRows();
 
     resetForm();
   } finally {
@@ -328,10 +395,15 @@ const handleSubmit = async () => {
   }
 };
 
-const handleStatusChange = () => {};
+const handleStatusChange = async (status) => {
+  if (status === "approving") {
+    await loadApprovingRows();
+  }
+};
 
 onMounted(async () => {
   await loadOptions();
+  await loadApprovingRows();
 });
 </script>
 
