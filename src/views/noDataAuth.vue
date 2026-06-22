@@ -3,7 +3,7 @@
     <section class="no-data-auth__content">
       <header class="page-title">
         <h1>您没有当前页面的数据权限</h1>
-        <el-tooltip content="可选择角色、Region 和数据类型后发起权限申请" placement="right">
+        <el-tooltip content="可选择云服务、Region 和数据类型后发起权限申请" placement="right">
           <el-icon class="page-title__icon"><QuestionFilled /></el-icon>
         </el-tooltip>
       </header>
@@ -16,22 +16,19 @@
 
       <section v-if="activeStatus === 'owned'" class="owned-auth">
         <div class="owned-section">
-          <h2 class="owned-section__title">角色</h2>
+          <h2 class="owned-section__title">云服务</h2>
           <div class="owned-list">
             <button
-              v-for="role in roles"
-              :key="role.code"
+              v-for="cloudServer in ownedCloudServers"
+              :key="cloudServer.code"
               class="owned-card"
               type="button"
             >
               <span class="owned-card__name">
-                <span class="owned-card__checkbox" aria-hidden="true" />
-                <el-icon><Grid /></el-icon>
-                {{ role.name }}
+                <FourGridIcon />
+                {{ cloudServer.code }}
               </span>
-              <span class="owned-card__meta">
-                {{ role.code }}
-              </span>
+              <span class="owned-card__meta" />
             </button>
           </div>
         </div>
@@ -46,13 +43,10 @@
               type="button"
             >
               <span class="owned-card__name">
-                <span class="owned-card__checkbox" aria-hidden="true" />
-                <el-icon><Grid /></el-icon>
-                {{ region.name }}
+                <FourGridIcon />
+                {{ region.code }}
               </span>
-              <span class="owned-card__meta">
-                {{ region.code }} {{ region.expireDate }}到期 审批人：{{ region.approver }} {{ region.orderNo }}
-              </span>
+              <span class="owned-card__meta" />
             </button>
           </div>
         </div>
@@ -61,19 +55,16 @@
           <h2 class="owned-section__title">数据类型</h2>
           <div class="owned-list">
             <button
-              v-for="dataType in dataTypes"
+              v-for="dataType in ownedDataTypes"
               :key="dataType.code"
               class="owned-card"
               type="button"
             >
               <span class="owned-card__name">
-                <span class="owned-card__checkbox" aria-hidden="true" />
-                <el-icon><Grid /></el-icon>
-                {{ dataType.name }}
-              </span>
-              <span class="owned-card__meta">
+                <FourGridIcon />
                 {{ dataType.code }}
               </span>
+              <span class="owned-card__meta" />
             </button>
           </div>
         </div>
@@ -98,24 +89,22 @@
         class="apply-form"
         label-position="top"
       >
-        <el-form-item label="角色" prop="roleCodes" required>
+        <el-form-item label="云服务" prop="cloudServerCodes" required>
           <div class="service-grid">
             <button
-              v-for="role in roles"
-              :key="role.code"
+              v-for="cloudServer in unownedCloudServers"
+              :key="cloudServer.code"
               class="resource-card"
-              :class="{ 'resource-card--active': form.roleCodes.includes(role.code) }"
+              :class="{ 'resource-card--active': form.cloudServerCodes.includes(cloudServer.code) }"
               type="button"
-              @click="toggleRole(role.code)"
+              @click="toggleCloudServer(cloudServer.code)"
             >
               <span class="resource-card__name">
                 <span class="resource-card__checkbox" aria-hidden="true" />
-                <el-icon><Grid /></el-icon>
-                {{ role.name }}
+                <FourGridIcon />
+                {{ cloudServer.code }}
               </span>
-              <span class="resource-card__meta">
-                {{ role.code }}
-              </span>
+              <span class="resource-card__meta" />
             </button>
           </div>
         </el-form-item>
@@ -176,10 +165,10 @@
                   >
                     <span class="resource-card__name">
                       <span class="resource-card__checkbox" aria-hidden="true" />
-                      <el-icon><Grid /></el-icon>
-                      {{ region.name }}
+                      <FourGridIcon />
+                      {{ region.code }}
                     </span>
-                    <span class="resource-card__meta">{{ region.code }}</span>
+                    <span class="resource-card__meta" />
                   </button>
                 </div>
               </div>
@@ -190,7 +179,7 @@
         <el-form-item label="数据类型" prop="dataTypeCodes" required>
           <div class="service-grid">
             <button
-              v-for="dataType in dataTypes"
+              v-for="dataType in unownedDataTypes"
               :key="dataType.code"
               class="resource-card"
               :class="{ 'resource-card--active': form.dataTypeCodes.includes(dataType.code) }"
@@ -199,7 +188,7 @@
             >
               <span class="resource-card__name">
                 <span class="resource-card__checkbox" aria-hidden="true" />
-                <el-icon><Grid /></el-icon>
+                <FourGridIcon />
                 {{ dataType.code }}
               </span>
               <span class="resource-card__meta" />
@@ -229,44 +218,61 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, h, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { Grid, QuestionFilled, Search } from "@element-plus/icons-vue";
+import { QuestionFilled, Search } from "@element-plus/icons-vue";
 import {
   createNoDataAuth,
   getNoDataAuthList,
   getNoDataAuthOptions,
 } from "@/api/noDataAuth";
 
+const FourGridIcon = {
+  name: "FourGridIcon",
+  render() {
+    return h(
+      "span",
+      {
+        class: "four-grid-icon",
+        "aria-hidden": "true",
+      },
+      [h("span"), h("span"), h("span"), h("span")]
+    );
+  },
+};
+
 const activeStatus = ref("waiting");
 const areaFilter = ref("all");
 const formRef = ref();
 const keyword = ref("");
 const openedGroups = ref([]);
-const roles = ref([]);
-const regionGroups = ref([]);
-const dataTypes = ref([]);
+const unownedCloudServers = ref([]);
+const unownedRegionGroups = ref([]);
+const unownedDataTypes = ref([]);
+const ownedCloudServers = ref([]);
+const ownedRegionGroups = ref([]);
+const ownedDataTypes = ref([]);
 const approvingRows = ref([]);
 const submitLoading = ref(false);
 
 const form = reactive({
-  roleCodes: [],
+  cloudServerCodes: [],
   regionCodes: [],
   dataTypeCodes: [],
   reason: "",
 });
 
 const rules = {
-  roleCodes: [{ required: true, message: "请选择角色", trigger: "change" }],
+  cloudServerCodes: [{ required: true, message: "请选择云服务", trigger: "change" }],
   regionCodes: [{ required: true, message: "请选择Region", trigger: "change" }],
   dataTypeCodes: [{ required: true, message: "请选择数据类型", trigger: "change" }],
   reason: [{ required: true, message: "请输入申请原因", trigger: "blur" }],
 };
 
-const areaOptions = computed(() => regionGroups.value.map((group) => group.name));
+const areaOptions = computed(() => unownedRegionGroups.value.map((group) => group.name));
 
 const ownedRegions = computed(() =>
-  regionGroups.value
+  ownedRegionGroups.value
     .flatMap((group) => group.children)
     .map((region) => ({
       ...region,
@@ -277,7 +283,7 @@ const ownedRegions = computed(() =>
 );
 
 const visibleRegionGroups = computed(() => {
-  const groups = regionGroups.value.filter((group) => {
+  const groups = unownedRegionGroups.value.filter((group) => {
     if (areaFilter.value === "all") {
       return true;
     }
@@ -299,16 +305,24 @@ const visibleRegionGroups = computed(() => {
 
 const loadOptions = async () => {
   const response = await getNoDataAuthOptions();
-  const regionGroupsByCode = response.data.regionCodeList.map((region) => ({
+  const unownedRegionGroupsByCode = response.data.regionCodeList.map((region) => ({
+    id: region.code,
+    name: region.name,
+    children: region.children,
+  }));
+  const ownedRegionGroupsByCode = response.data.ownedRegionCodeList.map((region) => ({
     id: region.code,
     name: region.name,
     children: region.children,
   }));
 
-  roles.value = response.data.ruleCodeList;
-  regionGroups.value = regionGroupsByCode;
-  dataTypes.value = response.data.dataTypeList;
-  openedGroups.value = regionGroupsByCode.map((group) => group.id);
+  unownedCloudServers.value = response.data.cloudServerNameCodeList;
+  unownedRegionGroups.value = unownedRegionGroupsByCode;
+  unownedDataTypes.value = response.data.dataTypeList;
+  ownedCloudServers.value = response.data.ownedCloudServerNameCodeList;
+  ownedRegionGroups.value = ownedRegionGroupsByCode;
+  ownedDataTypes.value = response.data.ownedDataTypeList;
+  openedGroups.value = unownedRegionGroupsByCode.map((group) => group.id);
 };
 
 const loadApprovingRows = async () => {
@@ -331,9 +345,9 @@ const toggleById = (list, id) => {
   return [...list, id];
 };
 
-const toggleRole = (code) => {
-  form.roleCodes = toggleById(form.roleCodes, code);
-  formRef.value.validateField("roleCodes");
+const toggleCloudServer = (code) => {
+  form.cloudServerCodes = toggleById(form.cloudServerCodes, code);
+  formRef.value.validateField("cloudServerCodes");
 };
 
 const toggleRegion = (code) => {
@@ -359,7 +373,7 @@ const handleKeywordChange = () => {
 };
 
 const resetForm = () => {
-  form.roleCodes = [];
+  form.cloudServerCodes = [];
   form.regionCodes = [];
   form.dataTypeCodes = [];
   form.reason = "";
@@ -376,7 +390,7 @@ const handleSubmit = async () => {
       tenant: "",
       description: form.reason,
       dataRoleList: [
-        ...form.roleCodes,
+        ...form.cloudServerCodes,
         ...form.regionCodes,
         ...form.dataTypeCodes,
       ].map((dataRoleId) => ({
@@ -505,12 +519,6 @@ onMounted(async () => {
   line-height: 1.4;
 }
 
-.owned-section__title::before {
-  margin-right: 6px;
-  color: #f56c6c;
-  content: "*";
-}
-
 .owned-list {
   display: flex;
   flex-direction: column;
@@ -536,14 +544,6 @@ onMounted(async () => {
   gap: 12px;
   font-weight: 700;
   white-space: nowrap;
-}
-
-.owned-card__checkbox {
-  width: 14px;
-  height: 14px;
-  border: 1px solid #d8dce8;
-  border-radius: 2px;
-  background: #fff;
 }
 
 .owned-card__meta {
@@ -593,6 +593,20 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
+.four-grid-icon {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 6px);
+  gap: 1px;
+  color: #4865d9;
+}
+
+.four-grid-icon :deep(span) {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
 .resource-card__checkbox {
   position: relative;
   width: 14px;
@@ -634,7 +648,7 @@ onMounted(async () => {
 
 .region-toolbar {
   display: grid;
-  grid-template-columns: auto 160px 1fr;
+  grid-template-columns: auto 160px minmax(0, 1fr);
   gap: 14px;
   align-items: center;
   padding: 0 18px 16px;
@@ -650,6 +664,7 @@ onMounted(async () => {
 }
 
 .region-toolbar__search {
+  min-width: 0;
   width: 100%;
 }
 
@@ -800,10 +815,6 @@ onMounted(async () => {
 
   .service-grid,
   .region-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .region-toolbar {
     grid-template-columns: 1fr;
   }
 

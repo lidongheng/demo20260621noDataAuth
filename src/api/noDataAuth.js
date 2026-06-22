@@ -14,6 +14,30 @@ const userAuthMock = {
       code: "ROLE_CUSTOMER",
     },
   ],
+  cloudServerNameCodeList: [
+    {
+      name: "张三",
+      code: "CLOUD_ECS",
+    },
+    {
+      name: "张三",
+      code: "CLOUD_OBS",
+    },
+    {
+      name: "张三",
+      code: "CLOUD_XPU",
+    },
+  ],
+  ownedCloudServerNameCodeList: [
+    {
+      name: "张三",
+      code: "CLOUD_ECS",
+    },
+    {
+      name: "张三",
+      code: "CLOUD_OBS",
+    },
+  ],
   regionCodeList: [
     {
       name: "华东",
@@ -21,7 +45,7 @@ const userAuthMock = {
       children: [
         {
           name: "英超-阿森纳",
-          code: "REGION_CN_EAST",
+          code: "REGION_CN_EAST_ARSENAL",
         },
         {
           name: "英超-切尔西",
@@ -70,6 +94,32 @@ const userAuthMock = {
       ],
     },
   ],
+  ownedRegionCodeList: [
+    {
+      name: "华东",
+      code: "REGION_CN_EAST",
+      children: [
+        {
+          name: "英超-阿森纳",
+          code: "REGION_CN_EAST_ARSENAL",
+        },
+        {
+          name: "英超-切尔西",
+          code: "REGION_CN_EAST_CHELSEA",
+        },
+      ],
+    },
+    {
+      name: "华西",
+      code: "REGION_CN_WEST",
+      children: [
+        {
+          name: "西甲-皇家马德里",
+          code: "REGION_CN_WEST_REAL_MADRID",
+        },
+      ],
+    },
+  ],
   dataTypeList: [
     {
       name: "张三",
@@ -82,6 +132,16 @@ const userAuthMock = {
     {
       name: "张三",
       code: "DATA_REVENUE",
+    },
+  ],
+  ownedDataTypeList: [
+    {
+      name: "张三",
+      code: "DATA_COST",
+    },
+    {
+      name: "张三",
+      code: "DATA_EFFICIENCY",
     },
   ],
 };
@@ -104,11 +164,11 @@ let applications = [
     description: "项目联调需要临时开通数据权限。",
     dataRoleList: [
       {
-        dataRoleId: "ROLE_CXO",
+        dataRoleId: "CLOUD_ECS",
         validityPeriod: "2027-10-31",
       },
       {
-        dataRoleId: "REGION_CN_EAST",
+        dataRoleId: "REGION_CN_EAST_ARSENAL",
         validityPeriod: "2027-10-31",
       },
       {
