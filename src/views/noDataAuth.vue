@@ -35,7 +35,7 @@
 
         <div class="owned-section">
           <h2 class="owned-section__title">Region</h2>
-          <div class="owned-list">
+          <div class="owned-list owned-list--region">
             <button
               v-for="region in ownedRegions"
               :key="region.code"
@@ -551,6 +551,12 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.owned-list--region {
+  max-height: 364px;
+  padding-right: 8px;
+  overflow-y: auto;
 }
 
 .owned-card {
