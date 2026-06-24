@@ -1,147 +1,178 @@
 const userAuthMock = {
   account: "12345678",
+  totalDimenPermConfigList: [
+    {
+      permDimenTypeCode: "1",
+      permDimenTypeName: "角色",
+      detailList: [
+        {
+          permCode: "ROLE_CXO",
+          permName: "CXO",
+        },
+        {
+          permCode: "ROLE_INTERNAL_CUSTOMER",
+          permName: "内部客户",
+        },
+      ],
+    },
+    {
+      permDimenTypeCode: "2",
+      permDimenTypeName: "区域",
+      detailList: [
+        {
+          permCode: "AREA_CN_SOUTH",
+          permName: "华南",
+        },
+        {
+          permCode: "AREA_CN_EAST",
+          permName: "华东",
+        },
+      ],
+    },
+    {
+      permDimenTypeCode: "3",
+      permDimenTypeName: "数据类型",
+      detailList: [
+        {
+          permCode: "DATA_COST",
+          permName: "成本",
+        },
+        {
+          permCode: "DATA_EFFICIENCY",
+          permName: "效率",
+        },
+        {
+          permCode: "DATA_REVENUE",
+          permName: "流水",
+        },
+      ],
+    },
+    {
+      permDimenTypeCode: "4",
+      permDimenTypeName: "云服务类型",
+      detailList: [
+        {
+          permCode: "CLOUD_ECS",
+          permName: "ECS",
+        },
+        {
+          permCode: "CLOUD_OBS",
+          permName: "OBS",
+        },
+        {
+          permCode: "CLOUD_XPU",
+          permName: "XPU",
+        },
+      ],
+    },
+    {
+      permDimenTypeCode: "5",
+      permDimenTypeName: "Region",
+      detailList: [
+        {
+          permCode: "cn-northeast-204",
+          permName: "东北-长春-一汽",
+        },
+        {
+          permCode: "cn-northeast-1",
+          permName: "东北-沈阳一",
+        },
+        {
+          permCode: "cn-north-1",
+          permName: "华北-北京一",
+        },
+        {
+          permCode: "cn-north-2",
+          permName: "华北-北京二",
+        },
+        {
+          permCode: "cn-east-1",
+          permName: "华东-上海一",
+        },
+        {
+          permCode: "cn-east-2",
+          permName: "华东-上海二",
+        },
+        {
+          permCode: "cn-south-1",
+          permName: "华南-广州一",
+        },
+        {
+          permCode: "cn-southwest-1",
+          permName: "西南-贵阳一",
+        },
+      ],
+    },
+  ],
   ruleCodeList: [
     {
       name: "张三",
       code: "ROLE_CXO",
-    },
-    {
-      name: "张三",
-      code: "ROLE_SALES",
-    },
-    {
-      name: "张三",
-      code: "ROLE_CUSTOMER",
-    },
-  ],
-  cloudServerNameCodeList: [
-    {
-      name: "张三",
-      code: "CLOUD_ECS",
-    },
-    {
-      name: "张三",
-      code: "CLOUD_OBS",
-    },
-    {
-      name: "张三",
-      code: "CLOUD_XPU",
-    },
-  ],
-  ownedCloudServerNameCodeList: [
-    {
-      name: "张三",
-      code: "CLOUD_ECS",
-    },
-    {
-      name: "张三",
-      code: "CLOUD_OBS",
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
   ],
   regionCodeList: [
     {
-      name: "华东",
+      name: "张三",
       code: "REGION_CN_EAST",
-      children: [
-        {
-          name: "英超-阿森纳",
-          code: "REGION_CN_EAST_ARSENAL",
-        },
-        {
-          name: "英超-切尔西",
-          code: "REGION_CN_EAST_CHELSEA",
-        },
-        {
-          name: "英超-利物浦",
-          code: "REGION_CN_EAST_LIVERPOOL",
-        },
-      ],
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
     {
-      name: "华西",
+      name: "张三",
       code: "REGION_CN_WEST",
-      children: [
-        {
-          name: "西甲-皇家马德里",
-          code: "REGION_CN_WEST_REAL_MADRID",
-        },
-        {
-          name: "西甲-巴塞罗那",
-          code: "REGION_CN_WEST_BARCELONA",
-        },
-        {
-          name: "西甲-马德里竞技",
-          code: "REGION_CN_WEST_ATLETICO",
-        },
-      ],
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
     {
-      name: "华南",
+      name: "张三",
       code: "REGION_CN_SOUTH",
-      children: [
-        {
-          name: "意甲-国际米兰",
-          code: "REGION_CN_SOUTH_INTER",
-        },
-        {
-          name: "德甲-拜仁慕尼黑",
-          code: "REGION_CN_SOUTH_BAYERN",
-        },
-        {
-          name: "法甲-巴黎圣日耳曼",
-          code: "REGION_CN_SOUTH_PSG",
-        },
-      ],
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
   ],
-  ownedRegionCodeList: [
-    {
-      name: "华东",
-      code: "REGION_CN_EAST",
-      children: [
-        {
-          name: "英超-阿森纳",
-          code: "REGION_CN_EAST_ARSENAL",
-        },
-        {
-          name: "英超-切尔西",
-          code: "REGION_CN_EAST_CHELSEA",
-        },
-      ],
-    },
-    {
-      name: "华西",
-      code: "REGION_CN_WEST",
-      children: [
-        {
-          name: "西甲-皇家马德里",
-          code: "REGION_CN_WEST_REAL_MADRID",
-        },
-      ],
-    },
-  ],
-  dataTypeList: [
+  dataTypeCodeList: [
     {
       name: "张三",
       code: "DATA_COST",
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
     {
       name: "张三",
       code: "DATA_EFFICIENCY",
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
     {
       name: "张三",
       code: "DATA_REVENUE",
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
   ],
-  ownedDataTypeList: [
+  cloudServerNameList: [
     {
       name: "张三",
-      code: "DATA_COST",
+      code: "CLOUD_ECS",
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
     {
       name: "张三",
-      code: "DATA_EFFICIENCY",
+      code: "CLOUD_OBS",
+      validEndTime: "2027-10-31",
+      account: "12345678",
+      userName: "张三",
     },
   ],
 };
@@ -185,9 +216,8 @@ const waitMock = (data) =>
   new Promise((resolve) => {
     window.setTimeout(() => {
       resolve({
-        status: 0,
-        message: "",
-        messageEn: "",
+        status: 200,
+        massage: "success",
         data,
       });
     }, 220);

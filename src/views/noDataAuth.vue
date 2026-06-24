@@ -166,7 +166,7 @@
                     <span class="resource-card__name">
                       <span class="resource-card__checkbox" aria-hidden="true" />
                       <FourGridIcon />
-                      {{ region.code }}
+                      {{ region.name }}
                     </span>
                     <span class="resource-card__meta" />
                   </button>
@@ -250,7 +250,7 @@ const unownedCloudServers = ref([]);
 const unownedRegionGroups = ref([]);
 const unownedDataTypes = ref([]);
 const ownedCloudServers = ref([]);
-const ownedRegionGroups = ref([]);
+const ownedRegions = ref([]);
 const ownedDataTypes = ref([]);
 const approvingRows = ref([]);
 const submitLoading = ref(false);
@@ -270,17 +270,6 @@ const rules = {
 };
 
 const areaOptions = computed(() => unownedRegionGroups.value.map((group) => group.name));
-
-const ownedRegions = computed(() =>
-  ownedRegionGroups.value
-    .flatMap((group) => group.children)
-    .map((region) => ({
-      ...region,
-      expireDate: "2027-10-31",
-      approver: "张三",
-      orderNo: "12345678",
-    }))
-);
 
 const visibleRegionGroups = computed(() => {
   const groups = unownedRegionGroups.value.filter((group) => {
@@ -305,23 +294,62 @@ const visibleRegionGroups = computed(() => {
 
 const loadOptions = async () => {
   const response = await getNoDataAuthOptions();
-  const unownedRegionGroupsByCode = response.data.regionCodeList.map((region) => ({
-    id: region.code,
-    name: region.name,
-    children: region.children,
-  }));
-  const ownedRegionGroupsByCode = response.data.ownedRegionCodeList.map((region) => ({
-    id: region.code,
-    name: region.name,
-    children: region.children,
-  }));
+  const dataTypeDimension = response.data.totalDimenPermConfigList.find(
+    (dimension) => dimension.permDimenTypeCode === "3"
+  );
+  const cloudServerDimension = response.data.totalDimenPermConfigList.find(
+    (dimension) => dimension.permDimenTypeCode === "4"
+  );
+  const regionDimension = response.data.totalDimenPermConfigList.find(
+    (dimension) => dimension.permDimenTypeCode === "5"
+  );
+  const maskedLeagues = ["英超", "西甲", "意甲", "德甲", "法甲"];
+  const maskedTeams = [
+    "阿森纳",
+    "切尔西",
+    "利物浦",
+    "皇家马德里",
+    "巴塞罗那",
+    "国际米兰",
+    "拜仁慕尼黑",
+    "巴黎圣日耳曼",
+  ];
+  const regionGroupMap = new Map();
 
-  unownedCloudServers.value = response.data.cloudServerNameCodeList;
+  // 分组依据使用真实名称，子项只替换展示名称，权限编码保持接口原值。
+  regionDimension.detailList.forEach((region, index) => {
+    const groupName = region.permName.split("-")[0];
+
+    if (!regionGroupMap.has(groupName)) {
+      regionGroupMap.set(groupName, {
+        id: groupName,
+        name: groupName,
+        children: [],
+      });
+    }
+
+    regionGroupMap.get(groupName).children.push({
+      code: region.permCode,
+      name: `${maskedLeagues[index % maskedLeagues.length]}-${
+        maskedTeams[index % maskedTeams.length]
+      }`,
+    });
+  });
+
+  const unownedRegionGroupsByCode = Array.from(regionGroupMap.values());
+
+  unownedCloudServers.value = cloudServerDimension.detailList.map((item) => ({
+    code: item.permCode,
+    name: item.permName,
+  }));
   unownedRegionGroups.value = unownedRegionGroupsByCode;
-  unownedDataTypes.value = response.data.dataTypeList;
-  ownedCloudServers.value = response.data.ownedCloudServerNameCodeList;
-  ownedRegionGroups.value = ownedRegionGroupsByCode;
-  ownedDataTypes.value = response.data.ownedDataTypeList;
+  unownedDataTypes.value = dataTypeDimension.detailList.map((item) => ({
+    code: item.permCode,
+    name: item.permName,
+  }));
+  ownedCloudServers.value = response.data.cloudServerNameList;
+  ownedRegions.value = response.data.regionCodeList;
+  ownedDataTypes.value = response.data.dataTypeCodeList;
   openedGroups.value = unownedRegionGroupsByCode.map((group) => group.id);
 };
 
