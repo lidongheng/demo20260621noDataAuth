@@ -294,13 +294,27 @@ const visibleRegionGroups = computed(() => {
 
 const loadOptions = async () => {
   const response = await getNoDataAuthOptions();
-  const dataTypeDimension = response.data.totalDimenPermConfigList.find(
+  const optionData = response.data;
+
+  if (optionData === null || Array.isArray(optionData)) {
+    // 后端业务状态异常时 HTTP 仍为 200，页面按空权限数据展示。
+    unownedCloudServers.value = [];
+    unownedRegionGroups.value = [];
+    unownedDataTypes.value = [];
+    ownedCloudServers.value = [];
+    ownedRegions.value = [];
+    ownedDataTypes.value = [];
+    openedGroups.value = [];
+    return;
+  }
+
+  const dataTypeDimension = optionData.totalDimenPermConfigList.find(
     (dimension) => dimension.permDimenTypeCode === "3"
   );
-  const cloudServerDimension = response.data.totalDimenPermConfigList.find(
+  const cloudServerDimension = optionData.totalDimenPermConfigList.find(
     (dimension) => dimension.permDimenTypeCode === "4"
   );
-  const regionDimension = response.data.totalDimenPermConfigList.find(
+  const regionDimension = optionData.totalDimenPermConfigList.find(
     (dimension) => dimension.permDimenTypeCode === "5"
   );
   const maskedLeagues = ["英超", "西甲", "意甲", "德甲", "法甲"];
@@ -347,9 +361,9 @@ const loadOptions = async () => {
     code: item.permCode,
     name: item.permName,
   }));
-  ownedCloudServers.value = response.data.cloudServerNameList;
-  ownedRegions.value = response.data.regionCodeList;
-  ownedDataTypes.value = response.data.dataTypeCodeList;
+  ownedCloudServers.value = optionData.cloudServerNameList;
+  ownedRegions.value = optionData.regionCodeList;
+  ownedDataTypes.value = optionData.dataTypeCodeList;
   openedGroups.value = unownedRegionGroupsByCode.map((group) => group.id);
 };
 
