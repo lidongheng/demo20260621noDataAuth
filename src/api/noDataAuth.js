@@ -52,36 +52,52 @@ const userAuthMock = {
       permDimenTypeName: "Region",
       detailList: [
         {
-          permCode: "cn-northeast-204",
+          permCode: "REGION_CN_EAST",
           permName: "东北-长春-一汽",
         },
         {
-          permCode: "cn-northeast-1",
+          permCode: "REGION_CN_NORTH",
           permName: "东北-沈阳一",
         },
         {
-          permCode: "cn-north-1",
+          permCode: "REGION_CN_SOUTH",
           permName: "华北-北京一",
         },
         {
-          permCode: "cn-north-2",
+          permCode: "REGION_CN_WEST",
           permName: "华北-北京二",
         },
         {
-          permCode: "cn-east-1",
+          permCode: "REGION_CN_BEIJING_ONE",
           permName: "华东-上海一",
         },
         {
-          permCode: "cn-east-2",
+          permCode: "REGION_CN_SHANGHAI_ONE",
           permName: "华东-上海二",
         },
         {
-          permCode: "cn-south-1",
+          permCode: "REGION_CN_SHENZHEN",
           permName: "华南-广州一",
         },
         {
-          permCode: "cn-southwest-1",
+          permCode: "REGION_CN_HONGKONG",
           permName: "西南-贵阳一",
+        },
+        {
+          permCode: "REGION_AP_SINGAPORE",
+          permName: "亚太-新加坡",
+        },
+        {
+          permCode: "REGION_AP_JAKARTA",
+          permName: "亚太-雅加达",
+        },
+        {
+          permCode: "REGION_EU_FRANKFURT",
+          permName: "欧洲-法兰克福",
+        },
+        {
+          permCode: "REGION_US_SILICON_VALLEY",
+          permName: "北美-硅谷",
         },
       ],
     },

@@ -218,6 +218,7 @@
 
 <script setup>
 import { computed, h, onMounted, reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { QuestionFilled, Search } from "@element-plus/icons-vue";
 import {
@@ -241,6 +242,7 @@ const FourGridIcon = {
 };
 
 const activeStatus = ref("waiting");
+const route = useRoute();
 const areaFilter = ref("all");
 const formRef = ref();
 const keyword = ref("");
@@ -299,6 +301,26 @@ const visibleRegionGroups = computed(() => {
     }))
     .filter((group) => group.children.length > 0);
 });
+
+const parseQueryCodes = (value) => {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => parseQueryCodes(item));
+  }
+
+  if (!value) {
+    return [];
+  }
+
+  return String(value).split(",").filter(Boolean);
+};
+
+const initializeDefaultSelection = () => {
+  const selectedRegionCodeSet = new Set(parseQueryCodes(route.query.regionCodes));
+
+  // 从权限卡片跳转过来时，用 regionCode 与申请页可申请 Region 做匹配。
+  form.regionCodes = allRegionCodes.value.filter((code) => selectedRegionCodeSet.has(code));
+  form.cloudServerCodes = unownedCloudServers.value.map((cloudServer) => cloudServer.code);
+};
 
 const loadOptions = async () => {
   const response = await getNoDataAuthOptions();
@@ -363,6 +385,7 @@ const loadOptions = async () => {
   ownedCloudServers.value = optionData.cloudServerNameList;
   ownedRegions.value = optionData.regionCodeList;
   openedGroups.value = unownedRegionGroupsByCode.map((group) => group.id);
+  initializeDefaultSelection();
 };
 
 const loadApprovingRows = async () => {
