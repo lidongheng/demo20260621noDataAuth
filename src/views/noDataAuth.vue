@@ -3,7 +3,7 @@
     <section class="no-data-auth__content">
       <header class="page-title">
         <h1>您没有当前页面的数据权限</h1>
-        <el-tooltip content="可选择云服务、Region 和数据类型后发起权限申请" placement="right">
+        <el-tooltip content="可选择云服务和 Region 后发起权限申请" placement="right">
           <el-icon class="page-title__icon"><QuestionFilled /></el-icon>
         </el-tooltip>
       </header>
@@ -51,23 +51,6 @@
           </div>
         </div>
 
-        <div class="owned-section">
-          <h2 class="owned-section__title">数据类型</h2>
-          <div class="owned-list">
-            <button
-              v-for="dataType in ownedDataTypes"
-              :key="dataType.code"
-              class="owned-card"
-              type="button"
-            >
-              <span class="owned-card__name">
-                <FourGridIcon />
-                {{ dataType.code }}
-              </span>
-              <span class="owned-card__meta" />
-            </button>
-          </div>
-        </div>
       </section>
 
       <section v-else-if="activeStatus === 'approving'" class="approving-table">
@@ -89,7 +72,13 @@
         class="apply-form"
         label-position="top"
       >
-        <el-form-item label="云服务" prop="cloudServerCodes" required>
+        <el-form-item prop="cloudServerCodes" required>
+          <template #label>
+            <span class="form-item-title">
+              <span>云服务</span>
+              <span class="form-item-title__meta">审批人：{{ cloudServerApprover }}</span>
+            </span>
+          </template>
           <div class="service-grid">
             <button
               v-for="cloudServer in unownedCloudServers"
@@ -136,21 +125,51 @@
             </div>
 
             <el-scrollbar class="region-scroll">
+              <button
+                class="region-select-all"
+                type="button"
+                @click="toggleAllRegions"
+              >
+                <span
+                  class="resource-card__checkbox"
+                  :class="{
+                    'resource-card__checkbox--checked': isAllRegionsChecked,
+                    'resource-card__checkbox--indeterminate': isAllRegionsIndeterminate,
+                  }"
+                  aria-hidden="true"
+                />
+                全部Region
+              </button>
               <div
                 v-for="group in visibleRegionGroups"
                 :key="group.id"
                 class="region-group"
               >
-                <button
-                  class="region-group__title"
-                  type="button"
-                  @click="toggleGroup(group.id)"
-                >
-                  <span class="region-group__arrow" :class="{ 'region-group__arrow--open': openedGroups.includes(group.id) }">
+                <div class="region-group__title">
+                  <button
+                    class="region-group__arrow"
+                    :class="{ 'region-group__arrow--open': openedGroups.includes(group.id) }"
+                    type="button"
+                    @click="toggleGroup(group.id)"
+                  >
                     ›
-                  </span>
+                  </button>
+                  <button
+                    class="region-group__checkbox-button"
+                    type="button"
+                    @click="toggleRegionGroup(group)"
+                  >
+                    <span
+                      class="resource-card__checkbox"
+                      :class="{
+                        'resource-card__checkbox--checked': isRegionGroupChecked(group),
+                        'resource-card__checkbox--indeterminate': isRegionGroupIndeterminate(group),
+                      }"
+                      aria-hidden="true"
+                    />
+                  </button>
                   {{ group.name }}
-                </button>
+                </div>
                 <div
                   v-if="openedGroups.includes(group.id)"
                   class="region-grid"
@@ -174,26 +193,6 @@
               </div>
             </el-scrollbar>
           </section>
-        </el-form-item>
-
-        <el-form-item label="数据类型" prop="dataTypeCodes" required>
-          <div class="service-grid">
-            <button
-              v-for="dataType in unownedDataTypes"
-              :key="dataType.code"
-              class="resource-card"
-              :class="{ 'resource-card--active': form.dataTypeCodes.includes(dataType.code) }"
-              type="button"
-              @click="toggleDataType(dataType.code)"
-            >
-              <span class="resource-card__name">
-                <span class="resource-card__checkbox" aria-hidden="true" />
-                <FourGridIcon />
-                {{ dataType.code }}
-              </span>
-              <span class="resource-card__meta" />
-            </button>
-          </div>
         </el-form-item>
 
         <el-form-item label="申请原因" prop="reason" required>
@@ -248,28 +247,37 @@ const keyword = ref("");
 const openedGroups = ref([]);
 const unownedCloudServers = ref([]);
 const unownedRegionGroups = ref([]);
-const unownedDataTypes = ref([]);
 const ownedCloudServers = ref([]);
 const ownedRegions = ref([]);
-const ownedDataTypes = ref([]);
 const approvingRows = ref([]);
 const submitLoading = ref(false);
 
 const form = reactive({
   cloudServerCodes: [],
   regionCodes: [],
-  dataTypeCodes: [],
   reason: "",
 });
 
 const rules = {
   cloudServerCodes: [{ required: true, message: "请选择云服务", trigger: "change" }],
   regionCodes: [{ required: true, message: "请选择Region", trigger: "change" }],
-  dataTypeCodes: [{ required: true, message: "请选择数据类型", trigger: "change" }],
   reason: [{ required: true, message: "请输入申请原因", trigger: "blur" }],
 };
 
 const areaOptions = computed(() => unownedRegionGroups.value.map((group) => group.name));
+const allRegionCodes = computed(() =>
+  unownedRegionGroups.value.flatMap((group) => group.children.map((region) => region.code))
+);
+const cloudServerApprover = computed(() => ownedCloudServers.value[0]?.userName);
+const isAllRegionsChecked = computed(() =>
+  allRegionCodes.value.length > 0
+  && allRegionCodes.value.every((code) => form.regionCodes.includes(code))
+);
+const isAllRegionsIndeterminate = computed(() => {
+  const selectedCount = allRegionCodes.value.filter((code) => form.regionCodes.includes(code)).length;
+
+  return selectedCount > 0 && selectedCount < allRegionCodes.value.length;
+});
 
 const visibleRegionGroups = computed(() => {
   const groups = unownedRegionGroups.value.filter((group) => {
@@ -300,17 +308,12 @@ const loadOptions = async () => {
     // 后端业务状态异常时 HTTP 仍为 200，页面按空权限数据展示。
     unownedCloudServers.value = [];
     unownedRegionGroups.value = [];
-    unownedDataTypes.value = [];
     ownedCloudServers.value = [];
     ownedRegions.value = [];
-    ownedDataTypes.value = [];
     openedGroups.value = [];
     return;
   }
 
-  const dataTypeDimension = optionData.totalDimenPermConfigList.find(
-    (dimension) => dimension.permDimenTypeCode === "3"
-  );
   const cloudServerDimension = optionData.totalDimenPermConfigList.find(
     (dimension) => dimension.permDimenTypeCode === "4"
   );
@@ -357,13 +360,8 @@ const loadOptions = async () => {
     name: item.permName,
   }));
   unownedRegionGroups.value = unownedRegionGroupsByCode;
-  unownedDataTypes.value = dataTypeDimension.detailList.map((item) => ({
-    code: item.permCode,
-    name: item.permName,
-  }));
   ownedCloudServers.value = optionData.cloudServerNameList;
   ownedRegions.value = optionData.regionCodeList;
-  ownedDataTypes.value = optionData.dataTypeCodeList;
   openedGroups.value = unownedRegionGroupsByCode.map((group) => group.id);
 };
 
@@ -387,19 +385,61 @@ const toggleById = (list, id) => {
   return [...list, id];
 };
 
+const validateField = (field) => {
+  // validateField 校验失败会返回 rejected promise，这里保留表单提示但避免开发 overlay 报错。
+  formRef.value.validateField(field).catch(() => {});
+};
+
 const toggleCloudServer = (code) => {
   form.cloudServerCodes = toggleById(form.cloudServerCodes, code);
-  formRef.value.validateField("cloudServerCodes");
+  validateField("cloudServerCodes");
 };
 
 const toggleRegion = (code) => {
   form.regionCodes = toggleById(form.regionCodes, code);
-  formRef.value.validateField("regionCodes");
+  validateField("regionCodes");
 };
 
-const toggleDataType = (code) => {
-  form.dataTypeCodes = toggleById(form.dataTypeCodes, code);
-  formRef.value.validateField("dataTypeCodes");
+const getRegionGroupCodes = (group) => group.children.map((region) => region.code);
+
+const isRegionGroupChecked = (group) => {
+  const groupCodes = getRegionGroupCodes(group);
+
+  return groupCodes.length > 0 && groupCodes.every((code) => form.regionCodes.includes(code));
+};
+
+const isRegionGroupIndeterminate = (group) => {
+  const groupCodes = getRegionGroupCodes(group);
+  const selectedCount = groupCodes.filter((code) => form.regionCodes.includes(code)).length;
+
+  return selectedCount > 0 && selectedCount < groupCodes.length;
+};
+
+const toggleAllRegions = () => {
+  const selectedRegionCodes = new Set(form.regionCodes);
+
+  if (isAllRegionsChecked.value) {
+    allRegionCodes.value.forEach((code) => selectedRegionCodes.delete(code));
+  } else {
+    allRegionCodes.value.forEach((code) => selectedRegionCodes.add(code));
+  }
+
+  form.regionCodes = Array.from(selectedRegionCodes);
+  validateField("regionCodes");
+};
+
+const toggleRegionGroup = (group) => {
+  const selectedRegionCodes = new Set(form.regionCodes);
+  const groupCodes = getRegionGroupCodes(group);
+
+  if (isRegionGroupChecked(group)) {
+    groupCodes.forEach((code) => selectedRegionCodes.delete(code));
+  } else {
+    groupCodes.forEach((code) => selectedRegionCodes.add(code));
+  }
+
+  form.regionCodes = Array.from(selectedRegionCodes);
+  validateField("regionCodes");
 };
 
 const toggleGroup = (id) => {
@@ -417,13 +457,17 @@ const handleKeywordChange = () => {
 const resetForm = () => {
   form.cloudServerCodes = [];
   form.regionCodes = [];
-  form.dataTypeCodes = [];
   form.reason = "";
   formRef.value.clearValidate();
 };
 
 const handleSubmit = async () => {
-  await formRef.value.validate();
+  try {
+    await formRef.value.validate();
+  } catch {
+    return;
+  }
+
   submitLoading.value = true;
 
   try {
@@ -434,7 +478,6 @@ const handleSubmit = async () => {
       dataRoleList: [
         ...form.cloudServerCodes,
         ...form.regionCodes,
-        ...form.dataTypeCodes,
       ].map((dataRoleId) => ({
         dataRoleId,
         validityPeriod: "2027-10-31",
@@ -502,6 +545,18 @@ onMounted(async () => {
 
 .apply-form {
   padding-bottom: 28px;
+}
+
+.form-item-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.form-item-title__meta {
+  color: #8a90a8;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .owned-auth {
@@ -669,16 +724,38 @@ onMounted(async () => {
   background: #4865d9;
 }
 
-.resource-card--active .resource-card__checkbox::after {
+.resource-card__checkbox--checked {
+  border-color: #4865d9;
+  background: #4865d9;
+}
+
+.resource-card--active .resource-card__checkbox::after,
+.resource-card__checkbox--checked::after {
   position: absolute;
-  top: 1px;
-  left: 4px;
+  top: 50%;
+  left: 50%;
   width: 4px;
   height: 8px;
   border: solid #fff;
   border-width: 0 2px 2px 0;
   content: "";
-  transform: rotate(45deg);
+  transform: translate(-50%, -58%) rotate(45deg);
+}
+
+.resource-card__checkbox--indeterminate {
+  border-color: #4865d9;
+  background: #4865d9;
+}
+
+.resource-card__checkbox--indeterminate::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 2px;
+  background: #fff;
+  content: "";
+  transform: translate(-50%, -50%);
 }
 
 .resource-card__meta {
@@ -721,14 +798,10 @@ onMounted(async () => {
   padding: 0 18px;
 }
 
-.region-group + .region-group {
-  margin-top: 12px;
-}
-
-.region-group__title {
+.region-select-all {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   height: 28px;
   padding: 0;
   border: 0;
@@ -738,19 +811,49 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+.region-group + .region-group {
+  margin-top: 12px;
+}
+
+.region-select-all + .region-group {
+  margin-top: 12px;
+}
+
+.region-group__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0;
+  color: #4a506e;
+  font-weight: 600;
+}
+
 .region-group__arrow {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 16px;
   height: 16px;
+  padding: 0;
+  border: 0;
   color: #6e7490;
+  background: transparent;
+  cursor: pointer;
   transform: rotate(0deg);
   transition: transform 0.2s ease;
 }
 
 .region-group__arrow--open {
   transform: rotate(90deg);
+}
+
+.region-group__checkbox-button {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .region-grid {

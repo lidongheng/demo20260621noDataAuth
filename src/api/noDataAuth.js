@@ -30,24 +30,6 @@ const userAuthMock = {
       ],
     },
     {
-      permDimenTypeCode: "3",
-      permDimenTypeName: "数据类型",
-      detailList: [
-        {
-          permCode: "DATA_COST",
-          permName: "成本",
-        },
-        {
-          permCode: "DATA_EFFICIENCY",
-          permName: "效率",
-        },
-        {
-          permCode: "DATA_REVENUE",
-          permName: "流水",
-        },
-      ],
-    },
-    {
       permDimenTypeCode: "4",
       permDimenTypeName: "云服务类型",
       detailList: [
@@ -136,29 +118,6 @@ const userAuthMock = {
       userName: "张三",
     },
   ],
-  dataTypeCodeList: [
-    {
-      name: "张三",
-      code: "DATA_COST",
-      validEndTime: "2027-10-31",
-      account: "12345678",
-      userName: "张三",
-    },
-    {
-      name: "张三",
-      code: "DATA_EFFICIENCY",
-      validEndTime: "2027-10-31",
-      account: "12345678",
-      userName: "张三",
-    },
-    {
-      name: "张三",
-      code: "DATA_REVENUE",
-      validEndTime: "2027-10-31",
-      account: "12345678",
-      userName: "张三",
-    },
-  ],
   cloudServerNameList: [
     {
       name: "张三",
@@ -200,10 +159,6 @@ let applications = [
       },
       {
         dataRoleId: "REGION_CN_EAST_ARSENAL",
-        validityPeriod: "2027-10-31",
-      },
-      {
-        dataRoleId: "DATA_COST",
         validityPeriod: "2027-10-31",
       },
     ],
